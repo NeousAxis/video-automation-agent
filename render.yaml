@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: video-automation-agent
+    env: python
+    plan: free # Or starter for more power
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: OPENAI_API_KEY
+        fromSecret: true
+      - key: ELEVENLABS_PROXY_URL
+        fromSecret: true
+      - key: VIDEO_MERGER_URL
+        fromSecret: true
+      - key: SENDGRID_API_KEY
+        fromSecret: true
+      - key: SENDER_EMAIL
+        fromSecret: true
+      - key: PYTHON_VERSION
+        value: 3.10.6 # Specify a Python version
