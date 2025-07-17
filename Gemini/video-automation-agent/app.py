@@ -122,6 +122,7 @@ def tally_webhook():
 
 @app.route('/')
 def home():
+    print("[*] DEBUG: Homepage accessed. New code is running!")
     return "Gemini CLI: Deployment Test - If you see this, the deployment is working!"
 
 
