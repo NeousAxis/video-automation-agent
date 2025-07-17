@@ -68,16 +68,47 @@ def create_video_task(form_data):
 
 @app.route('/webhook/tally', methods=['POST'])
 def tally_webhook():
+    print("[*] DEBUG: Webhook function entered.")
     """
     Receives the webhook from Tally.so, starts the video creation
     in a background thread, and returns an immediate response.
     """
     if request.json:
+        print(f"[*] Received raw JSON from Tally: {request.json}")
+        data = request.json.get('data', {})
+        fields = data.get('fields', [])
+        
+        if request.json:
         data = request.json.get('data', {})
         fields = data.get('fields', [])
         
         # Transform the Tally fields array into a simple key-value dictionary
-        form_data = {field.get('key'): field.get('value') for field in fields}
+        form_data = {}
+        field_mapping = {
+            "What’s the name of your project or brand?": "projectName",
+            "What’s the goal of your video?": "videoGoal",
+            "What is the core message you want to convey?": "centralMessage",
+            "What tone do you want for the video?": "tone",
+            "Who is your target audience?": "targetAudience",
+            "What should the final call-to-action be?": "callToAction",
+            "What’s your email address to receive the final video?": "email"
+        }
+
+        for field in fields:
+            label = field.get('label')
+            key = field_mapping.get(label)
+            if key:
+                if field.get('type') == 'MULTIPLE_CHOICE':
+                    selected_option_id = field.get('value')[0] if field.get('value') else None
+                    if selected_option_id:
+                        for option in field.get('options', []):
+                            if option.get('id') == selected_option_id:
+                                form_data[key] = option.get('text')
+                                break
+                else:
+                    form_data[key] = field.get('value')
+        print(f"[*] Debug: Parsed form_data: {form_data}")
+        print(f"[*] Received form data: {form_data}")
 
         # Run the video creation process in a background thread
         # to avoid Tally webhook timeouts.
@@ -89,9 +120,10 @@ def tally_webhook():
     else:
         return jsonify({'status': 'error', 'message': 'Invalid request format.'}), 400
 
-@app.route('/', methods=['GET'])
-def index():
-    return "Video Automation Agent is running."
+@app.route('/')
+def home():
+    return "Gemini CLI: Deployment Test - If you see this, the deployment is working!"
+
 
 if __name__ == '__main__':
     # Get port from environment variable or default to 5000
