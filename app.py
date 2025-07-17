@@ -5,10 +5,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    print("[*] DEBUG: Minimal App - Homepage accessed. This 
-should definitely show up!")
-    return "Gemini CLI: Minimal App Test - If you see this, 
-the deployment is working!"
+    print("[*] DEBUG: Minimal App - Homepage accessed. This should definitely show up!")
+    return "Gemini CLI: Minimal App Test - If you see this, the deployment is working!"
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
