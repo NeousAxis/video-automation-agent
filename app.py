@@ -73,8 +73,12 @@ def tally_webhook():
     in a background thread, and returns an immediate response.
     """
     if request.json:
-        form_data = request.json.get('data', {})
+        data = request.json.get('data', {})
+        fields = data.get('fields', [])
         
+        # Transform the Tally fields array into a simple key-value dictionary
+        form_data = {field.get('key'): field.get('value') for field in fields}
+
         # Run the video creation process in a background thread
         # to avoid Tally webhook timeouts.
         thread = threading.Thread(target=create_video_task, args=(form_data,))
