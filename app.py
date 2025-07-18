@@ -1,6 +1,6 @@
 import os
 import threading
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory # Added send_from_directory
 from dotenv import load_dotenv
 import sys # Import sys for stdout.flush()
 
@@ -51,14 +51,14 @@ def create_video_task(form_data):
         # 2. Generate voice-over
         print("[*] DEBUG: Calling generate_voice_over...")
         sys.stdout.flush() # Force flush
-        audio_file_path = generate_voice_over(script)
-        print(f"[*] Voice-over generated and saved to: {audio_file_path}")
+        audio_file_url = generate_voice_over(script) # Changed to audio_file_url
+        print(f"[*] Voice-over generated and saved to: {audio_file_url}") # Changed to audio_file_url
         sys.stdout.flush() # Force flush
 
         # 3. Merge image and audio into a video
         print("[*] DEBUG: Calling merge_audio_and_image...")
         sys.stdout.flush() # Force flush
-        video_url = merge_audio_and_image(image_url, audio_file_path)
+        video_url = merge_audio_and_image(image_url, audio_file_url) # Changed to audio_file_url
         print(f"[*] Video merged successfully. URL: {video_url}")
         sys.stdout.flush() # Force flush
 
@@ -70,10 +70,11 @@ def create_video_task(form_data):
         sys.stdout.flush() # Force flush
 
         # 5. Clean up local temporary files (optional but recommended)
-        if os.path.exists(audio_file_path):
-            os.remove(audio_file_path)
-            print(f"[*] Cleaned up temporary file: {audio_file_path}")
-            sys.stdout.flush() # Force flush
+        # Note: The audio file is now served from /tmp and will be cleaned up by the OS or on restart
+        # if os.path.exists(audio_file_path): # This line is removed as audio_file_path is no longer returned
+        #     os.remove(audio_file_path)
+        #     print(f"[*] Cleaned up temporary file: {audio_file_path}")
+        #     sys.stdout.flush() # Force flush
 
         print(f"[+] Video creation process for {project_name} completed successfully.")
         sys.stdout.flush() # Force flush
@@ -143,6 +144,13 @@ def index():
     print("[*] DEBUG: Homepage accessed. Original code is running!")
     sys.stdout.flush() # Force flush
     return "Video Automation Agent is running."
+
+# New route to serve temporary files
+@app.route('/temp_files/<path:filename>')
+def serve_temp_file(filename):
+    print(f"[*] Serving temporary file: {filename}")
+    sys.stdout.flush()
+    return send_from_directory('/tmp', filename)
 
 if __name__ == '__main__':
     # Get port from environment variable or default to 5000
