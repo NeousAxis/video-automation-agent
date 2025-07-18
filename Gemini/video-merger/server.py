@@ -53,7 +53,6 @@ def merge_video():
             "-b:a", "192k",
             "-shortest",
             "-movflags", "+faststart",
-            "-vf", "scale=1280:720",
             "-pix_fmt", "yuv420p",
             output_path
         ]
