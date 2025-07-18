@@ -24,19 +24,21 @@ def merge_video():
 
         print(f"[*] Downloading audio from: {audio_url}")
         sys.stdout.flush()
-        with open(audio_path, "wb") as f:
-            audio_response = requests.get(audio_url)
-            audio_response.raise_for_status() # Check for download errors
-            f.write(audio_response.content)
+        with requests.get(audio_url, stream=True) as r:
+            r.raise_for_status()
+            with open(audio_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
         print(f"[*] Audio downloaded to: {audio_path}")
         sys.stdout.flush()
 
         print(f"[*] Downloading image from: {image_url}")
         sys.stdout.flush()
-        with open(image_path, "wb") as f:
-            image_response = requests.get(image_url)
-            image_response.raise_for_status() # Check for download errors
-            f.write(image_response.content)
+        with requests.get(image_url, stream=True) as r:
+            r.raise_for_status()
+            with open(image_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
         print(f"[*] Image downloaded to: {image_path}")
         sys.stdout.flush()
 
