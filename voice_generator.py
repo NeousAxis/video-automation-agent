@@ -1,4 +1,3 @@
-
 import os
 import requests
 import uuid
@@ -8,13 +7,8 @@ ELEVENLABS_PROXY_URL = os.environ.get("ELEVENLABS_PROXY_URL")
 
 def generate_voice_over(script_text):
     """
-    Generates a voice-over MP3 from the given script using the ElevenLabs proxy.
-
-    Args:
-        script_text (str): The text to be converted to speech.
-
-    Returns:
-        str: The local file path of the saved MP3 audio file.
+    Generates a voice-over MP3 from the given script using the ElevenLabs proxy,
+    saves it locally, and returns the public URL from the current application.
     """
     if not ELEVENLABS_PROXY_URL:
         raise ValueError("ELEVENLABS_PROXY_URL environment variable not set.")
@@ -33,27 +27,39 @@ def generate_voice_over(script_text):
 
         # Generate a unique filename for the audio file
         temp_filename = f"temp_audio_{uuid.uuid4()}.mp3"
-        
-        # Ensure the /tmp directory exists if you are running in a standard Linux environment
-        # On Render, the filesystem is ephemeral, so saving to the root or a temp folder is fine.
         temp_filepath = os.path.join("/tmp", temp_filename)
         if not os.path.exists("/tmp"):
              os.makedirs("/tmp") # For local testing if /tmp doesn't exist
 
-
-        # Save the audio content to the file
+        # Save the audio content to the file locally
         with open(temp_filepath, 'wb') as f:
             f.write(response.content)
         
-        print(f"[*] Audio file successfully saved to {temp_filepath}")
-        return temp_filepath
+        print(f"[*] Audio file successfully saved locally to {temp_filepath}")
+
+        # Construct the public URL for the audio file
+        # This assumes your app is accessible via its Render URL
+        # You might need to get the base URL from an environment variable if it's not fixed
+        # For Render, it's usually https://YOUR_APP_NAME.onrender.com
+        # Let's assume the base URL is available as an environment variable for robustness
+        APP_BASE_URL = os.environ.get("RENDER_EXTERNAL_HOSTNAME") # Render provides this
+        if not APP_BASE_URL:
+            # Fallback for local testing or if variable is not set
+            APP_BASE_URL = "http://localhost:5000" # Or your local development URL
+
+        public_audio_url = f"https://{APP_BASE_URL}/temp_files/{temp_filename}" # Construct the URL
+        print(f"[*] Public audio URL: {public_audio_url}")
+
+        return public_audio_url # Return the public URL
 
     except requests.exceptions.RequestException as e:
-        print(f"[!] Error calling ElevenLabs Proxy: {e}")
-        # Log the response content if available for more details
+        print(f"[!] Error during ElevenLabs API call: {e}")
         if e.response is not None:
             print(f"[!] Response status: {e.response.status_code}")
             print(f"[!] Response body: {e.response.text}")
+        raise
+    except Exception as e:
+        print(f"[!] An unexpected error occurred in voice_generator: {e}")
         raise
 
 # Example usage (for testing)
